@@ -44,17 +44,60 @@ let callTimer = null;
 let callStartTime = null;
 let isCallActive = false;
 
-// Demo responses for AI simulation
+// Updated demo responses for customer service scenario - delayed package
 const demoResponses = [
-    "AI: Hello! I'm your AI assistant. How can I help you today?",
-    "User: I'd like to schedule an appointment.",
-    "AI: I'd be happy to help you schedule an appointment. What type of service are you looking for?",
-    "User: I need a consultation for next week.",
-    "AI: Perfect! Let me check available slots for next week. I have openings on Tuesday at 2 PM, Wednesday at 10 AM, or Friday at 3 PM. Which works best for you?",
-    "User: Tuesday at 2 PM sounds good.",
-    "AI: Excellent! I've scheduled your consultation for Tuesday at 2 PM. You'll receive a confirmation email shortly. Is there anything else I can help you with?",
-    "User: No, that's all. Thank you!",
-    "AI: You're welcome! Have a great day and we'll see you on Tuesday!"
+    {
+        speaker: "User",
+        text: "I've been waiting for my package for over a week now, and the tracking hasn't updated at all!",
+        emotion: "Frustrated/Angry",
+        tone: "Upset, demanding tone"
+    },
+    {
+        speaker: "AI",
+        text: "I'm really sorry to hear that. I understand how frustrating delays can be. Let me look into it for you right away.",
+        emotion: "Empathetic",
+        tone: "Calm, apologetic tone",
+        voiceStyle: "Compassionate"
+    },
+    {
+        speaker: "User",
+        text: "Yeah… I just want to know when I'll get it. It was supposed to be a gift.",
+        emotion: "Still Frustrated but softening",
+        tone: "Slightly calmer, explaining situation"
+    },
+    {
+        speaker: "AI",
+        text: "That makes sense, and I appreciate you sharing that with me. I've just checked the tracking—it looks like there was a delay at the distribution center, but your package is now out for delivery and should arrive tomorrow.",
+        emotion: "Understanding",
+        tone: "Warm, reassuring tone",
+        voiceStyle: "Helpful and informative"
+    },
+    {
+        speaker: "User",
+        text: "Oh okay, that's a relief. I just wish I had known sooner.",
+        emotion: "Relief",
+        tone: "Noticeably calmer, relieved"
+    },
+    {
+        speaker: "AI",
+        text: "Absolutely—and you're right. You deserve timely updates. I've gone ahead and enabled SMS alerts for any future changes so you'll be in the loop instantly.",
+        emotion: "Proactive",
+        tone: "Empathetic, slightly cheerful",
+        voiceStyle: "Solution-oriented"
+    },
+    {
+        speaker: "User",
+        text: "Thanks. That really helps.",
+        emotion: "Satisfied",
+        tone: "Calm, appreciative"
+    },
+    {
+        speaker: "AI",
+        text: "You're very welcome! I'm glad I could assist. If you need anything else, I'm right here.",
+        emotion: "Positive",
+        tone: "Upbeat, friendly conclusion",
+        voiceStyle: "Cheerful and supportive"
+    }
 ];
 
 let currentResponseIndex = 0;
@@ -74,22 +117,59 @@ function updateCallDuration() {
     }
 }
 
-// Add transcript line with typing effect
-function addTranscriptLine(text, delay = 0) {
+// Add transcript line with typing effect and emotion indicators
+function addTranscriptLine(responseObj, delay = 0) {
     setTimeout(() => {
-        const line = document.createElement('p');
+        const line = document.createElement('div');
         line.className = 'transcript-line';
         line.style.opacity = '0';
         line.style.transform = 'translateY(10px)';
+        
+        // Create the main text element
+        const textElement = document.createElement('p');
+        textElement.className = 'transcript-text';
+        
+        // Create emotion indicator
+        const emotionElement = document.createElement('span');
+        emotionElement.className = 'emotion-indicator';
+        emotionElement.textContent = `[${responseObj.emotion} detected]`;
+        
+        // Create voice style indicator for AI responses
+        let voiceStyleElement = null;
+        if (responseObj.voiceStyle) {
+            voiceStyleElement = document.createElement('span');
+            voiceStyleElement.className = 'voice-style-indicator';
+            voiceStyleElement.textContent = `[Voice: ${responseObj.voiceStyle}]`;
+        }
+        
+        // Style based on speaker
+        if (responseObj.speaker === 'AI') {
+            line.classList.add('ai-response');
+            textElement.style.color = '#06b6d4';
+            emotionElement.style.color = '#10b981';
+        } else {
+            line.classList.add('user-response');
+            textElement.style.color = '#f8fafc';
+            emotionElement.style.color = '#f59e0b';
+        }
+        
+        // Append elements
+        line.appendChild(emotionElement);
+        if (voiceStyleElement) {
+            line.appendChild(voiceStyleElement);
+        }
+        line.appendChild(textElement);
+        
         transcript.appendChild(line);
         
-        // Typing effect
+        // Typing effect for main text
         let charIndex = 0;
+        const fullText = `${responseObj.speaker}: ${responseObj.text}`;
         const typeWriter = () => {
-            if (charIndex < text.length) {
-                line.textContent += text.charAt(charIndex);
+            if (charIndex < fullText.length) {
+                textElement.textContent += fullText.charAt(charIndex);
                 charIndex++;
-                setTimeout(typeWriter, 50);
+                setTimeout(typeWriter, 30);
             }
         };
         
@@ -115,12 +195,21 @@ function startCall() {
     currentResponseIndex = 0;
     
     // Update UI
-    callStatus.textContent = 'Call Active - AI Assistant';
+    callStatus.textContent = 'Call Active - Customer Service';
     simulateCallBtn.disabled = true;
     endCallBtn.disabled = false;
     
     // Clear previous transcript
     transcript.innerHTML = '';
+    
+    // Add initial context
+    const contextElement = document.createElement('div');
+    contextElement.className = 'scenario-context';
+    contextElement.innerHTML = `
+        <h4>📋 Scenario: Customer calling about delayed package</h4>
+        <p><strong>🧠 AI System:</strong> Real-time emotion detection & voice adaptation active</p>
+    `;
+    transcript.appendChild(contextElement);
     
     // Start timer
     callTimer = setInterval(updateCallDuration, 1000);
@@ -146,20 +235,34 @@ function endCall() {
     }
     
     // Update UI
-    callStatus.textContent = 'Call Ended';
+    callStatus.textContent = 'Call Ended - Issue Resolved ✅';
     simulateCallBtn.disabled = false;
     endCallBtn.disabled = true;
+    
+    // Add call summary
+    setTimeout(() => {
+        const summaryElement = document.createElement('div');
+        summaryElement.className = 'call-summary';
+        summaryElement.innerHTML = `
+            <h4>📊 Call Summary</h4>
+            <p><strong>Outcome:</strong> Customer issue resolved successfully</p>
+            <p><strong>Emotions Detected:</strong> Frustration → Relief → Satisfaction</p>
+            <p><strong>AI Adaptations:</strong> Apologetic → Reassuring → Cheerful</p>
+        `;
+        transcript.appendChild(summaryElement);
+        transcript.scrollTop = transcript.scrollHeight;
+    }, 1000);
     
     // Remove visual effects
     const callAvatar = document.querySelector('.call-avatar');
     callAvatar.style.animation = '';
     
-    // Reset after 3 seconds
+    // Reset after 5 seconds
     setTimeout(() => {
         callStatus.textContent = 'Click to start AI call';
         callDuration.textContent = '00:00';
         callStartTime = null;
-    }, 3000);
+    }, 5000);
 }
 
 // Simulate conversation
@@ -169,7 +272,7 @@ function simulateConversation() {
     }
     
     const response = demoResponses[currentResponseIndex];
-    const delay = currentResponseIndex * 3000; // 3 seconds between responses
+    const delay = currentResponseIndex * 4000; // 4 seconds between responses for better readability
     
     addTranscriptLine(response, delay);
     currentResponseIndex++;
@@ -177,7 +280,7 @@ function simulateConversation() {
     // Schedule next response
     setTimeout(() => {
         simulateConversation();
-    }, delay + 2000);
+    }, delay + 3000);
 }
 
 // Event listeners for demo
@@ -292,7 +395,7 @@ acceptBtn?.addEventListener('click', () => {
     // Simulate call acceptance
     const callerInfo = document.querySelector('.caller-info p');
     if (callerInfo) {
-        callerInfo.textContent = 'Connected...';
+        callerInfo.textContent = 'Connected to Support...';
         callerInfo.style.color = '#10b981';
     }
 });
@@ -335,7 +438,7 @@ declineBtn?.addEventListener('click', () => {
     }
 });
 
-// Add CSS for ripple animation
+// Add CSS for new elements
 const style = document.createElement('style');
 style.textContent = `
     @keyframes ripple {
@@ -347,6 +450,87 @@ style.textContent = `
     
     .particle {
         z-index: -1;
+    }
+    
+    .scenario-context {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .scenario-context h4 {
+        color: #6366f1;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+    
+    .scenario-context p {
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .emotion-indicator {
+        display: block;
+        font-size: 0.8rem;
+        font-style: italic;
+        margin-bottom: 5px;
+        opacity: 0.8;
+    }
+    
+    .voice-style-indicator {
+        display: block;
+        font-size: 0.8rem;
+        font-style: italic;
+        margin-bottom: 5px;
+        color: #8b5cf6 !important;
+        opacity: 0.8;
+    }
+    
+    .transcript-line {
+        margin-bottom: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid transparent;
+    }
+    
+    .transcript-line.ai-response {
+        border-left-color: #06b6d4;
+        background: rgba(6, 182, 212, 0.1);
+    }
+    
+    .transcript-line.user-response {
+        border-left-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+    
+    .transcript-text {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    .call-summary {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+    
+    .call-summary h4 {
+        color: #10b981;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+    
+    .call-summary p {
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        margin: 5px 0;
     }
 `;
 document.head.appendChild(style);
@@ -423,9 +607,11 @@ function handleApiError(error) {
 console.log(`
 🔊🤖 AI-Call Frontend Loaded Successfully!
 
+Scenario: Customer Service - Delayed Package
 Features:
+- Real-time emotion detection simulation
+- AI voice tone adaptation
 - Interactive call simulation
-- Smooth animations
 - Responsive design
 - Modern UI/UX
 
